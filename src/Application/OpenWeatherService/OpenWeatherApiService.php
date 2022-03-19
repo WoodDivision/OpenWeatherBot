@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Application\OpenWeatherService;
 
 use App\Infrastructure\OpenWeatherAPI\OpenWeatherApiInterface;
-use Error;
 
 class OpenWeatherApiService implements OpenWeatherApiInterface
 {
@@ -18,11 +17,10 @@ class OpenWeatherApiService implements OpenWeatherApiInterface
             curl_setopt($curl, CURLOPT_HEADER, false);
             curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($curl, CURLOPT_VERBOSE, false);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
             $data = curl_exec($curl);
             curl_close($curl);
-        } catch (Error $e) {
+        } catch (\Error $e) {
             echo $e->getMessage();
         }
         return $data;

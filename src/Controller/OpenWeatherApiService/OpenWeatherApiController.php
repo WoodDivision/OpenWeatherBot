@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Controller\OpenWeatherApiService;
 
 use App\Controller\OpenWeatherApiService\Form\OpenWeatherApiServiceForm;
-use App\Infrastructure\Helpers\Validator\RequestFormValidationHelper;
 use OpenApi\Attributes as OA;
 use App\Application\OpenWeatherService\OpenWeatherApiService;
 use App\Controller\OpenWeatherApiService\Model\OpenWeatherApiServiceRequestModel;
@@ -33,36 +32,35 @@ class OpenWeatherApiController extends AbstractController
         description: 'API',
         security: [],
         tags: ['API'],
-        parameters: [],
+        parameters: [
+            new OA\Parameter(
+                parameter: 'string',
+                name: 'city',
+                in: 'path',
+                required: true,
+                ref: OpenWeatherApiServiceRequestModel::class
+            )
+        ],
         responses: [
             new OA\Response(response: 200, description: 'OK'),
             new OA\Response(response: 401, description: 'Not Allowed'),
             new OA\Response(response: 500, description: 'Server problem'),
         ]
-    ),
-        OA\Parameter(
-            parameter: 'string',
-            name: 'city',
-            in: 'path',
-            required: true,
-            ref: OpenWeatherApiServiceRequestModel::class,
-        )
+    )
     ]
     #[Route(path: '/weather/{city}', name: 'WeatherAPI', methods: 'GET')]
     public function __invoke(Request $request): Response
     {
         try {
             $model = new OpenWeatherApiServiceRequestModel();
-            $form = $this->createForm(OpenWeatherApiServiceForm::class, $model)
-                ->submit($request->attributes->get('city'));
-            RequestFormValidationHelper::validate($form);
-
+            $this->createForm(OpenWeatherApiServiceForm::class, $model)
+                ->submit($request->attributes->all());
             file_put_contents(
                 'weatherAPI.json',
                 $this->service->getOpenWeatherAPI($model->city)
             );
         } catch (\Exception $e) {
-            return new JsonResponse('fail');
+            return new JsonResponse($e->getMessage());
         }
         return new JsonResponse('done');
     }
